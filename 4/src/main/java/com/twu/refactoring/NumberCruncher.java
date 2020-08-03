@@ -1,5 +1,9 @@
 package com.twu.refactoring;
 
+import java.util.Arrays;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
+
 public class NumberCruncher {
     private final int[] numbers;
 
@@ -8,34 +12,24 @@ public class NumberCruncher {
     }
 
     public int countEven() {
-        int count = 0;
-        for (int number : numbers) {
-            if (number % 2 == 0) count++;
-        }
-        return count;
+        return count(number -> number % 2 == 0);
     }
 
     public int countOdd() {
-        int count = 0;
-        for (int number : numbers) {
-            if (number % 2 == 1) count++;
-        }
-        return count;
+        return count(number -> number % 2 == 1);
     }
 
     public int countPositive() {
-        int count = 0;
-        for (int number : numbers) {
-            if (number >= 0) count++;
-        }
-        return count;
+        return count(number -> number >= 0);
     }
 
     public int countNegative() {
-        int count = 0;
-        for (int number : numbers) {
-            if (number < 0) count++;
-        }
-        return count;
+        return count(number -> number < 0);
+    }
+
+    private int count(IntPredicate predicate) {
+        return (int) Arrays.stream(numbers)
+                .filter(predicate)
+                .count();
     }
 }
