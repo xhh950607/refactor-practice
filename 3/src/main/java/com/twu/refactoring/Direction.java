@@ -1,39 +1,30 @@
 package com.twu.refactoring;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Direction {
     private final char direction;
+    private final static List<Character> scope = Arrays.asList('E', 'S', 'W', 'N');
 
     public Direction(char direction) {
         this.direction = direction;
     }
 
     public Direction turnRight() {
-        switch (direction) {
-            case 'N':
-                return new Direction('E');
-            case 'S':
-                return new Direction('W');
-            case 'E':
-                return new Direction('N');
-            case 'W':
-                return new Direction('S');
-            default:
-                throw new IllegalArgumentException();
-        }
+        return turn(1);
     }
 
     public Direction turnLeft() {
-        switch (direction) {
-            case 'N':
-                return new Direction('W');
-            case 'S':
-                return new Direction('E');
-            case 'E':
-                return new Direction('N');
-            case 'W':
-                return new Direction('S');
-            default:
-                throw new IllegalArgumentException();
+        return turn(scope.size() - 1);
+    }
+
+    private Direction turn(int number) {
+        if (scope.contains(direction)) {
+            int index = (scope.indexOf(direction) + number) % scope.size();
+            return new Direction(scope.get(index));
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
