@@ -27,17 +27,17 @@ public class DateParser {
     }
 
     public Date parse() {
-        int year = extract(YEAR);
-        int month = extract(MONTH);
-        int date = extract(DATE);
+        int year = extract(Component.YEAR);
+        int month = extract(Component.MONTH);
+        int date = extract(Component.DATE);
         int hour, minute;
 
         if (dateAndTimeString.substring(11, 12).equals("Z")) {
             hour = 0;
             minute = 0;
         } else {
-            hour = extract(HOUR);
-            minute = extract(MINUTE);
+            hour = extract(Component.HOUR);
+            minute = extract(Component.MINUTE);
         }
 
         Calendar calendar = Calendar.getInstance();
@@ -47,15 +47,21 @@ public class DateParser {
         return calendar.getTime();
     }
 
-    private static class Component {
-        String name;
-        int startPosition;
-        int endPosition;
-        int lowerBound;
-        int upperBound;
-        int numberOfChars;
+    private enum  Component {
+        YEAR("Year", 0, 4, 2000, 2012),
+        MONTH("Month", 5, 7, 1, 12),
+        DATE("Date", 8, 10, 1, 31),
+        HOUR("Hour", 11, 13, 0, 23),
+        MINUTE("Minute", 14, 16, 0, 59);
 
-        public Component(String name, int startPosition, int endPosition, int lowerBound, int upperBound) {
+        private String name;
+        private int startPosition;
+        private int endPosition;
+        private int lowerBound;
+        private int upperBound;
+        private int numberOfChars;
+
+        Component(String name, int startPosition, int endPosition, int lowerBound, int upperBound) {
             this.name = name;
             this.startPosition = startPosition;
             this.endPosition = endPosition;
@@ -64,12 +70,6 @@ public class DateParser {
             this.numberOfChars = endPosition - startPosition;
         }
     }
-
-    private final static Component YEAR = new Component("Year", 0, 4, 2000, 2012);
-    private final static Component MONTH = new Component("Month", 5, 7, 1, 12);
-    private final static Component DATE = new Component("Date", 8, 10, 1, 31);
-    private final static Component HOUR = new Component("Hour", 11, 13, 0, 23);
-    private final static Component MINUTE = new Component("Minute", 14, 16, 0, 59);
 
     private int extract(Component component) {
         int res;
