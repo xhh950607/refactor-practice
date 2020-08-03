@@ -18,4 +18,23 @@ public class Rental {
     public Movie getMovie() {
         return movie;
     }
+
+    public double getAmount() {
+        Movie.PriceParameterTable table = movie.getPriceParameterTable();
+        double fixCharge = table.getFixCharge();
+        int basicDays = table.getBasicDays();
+        double dailyAddedCharge = table.getDailyAddedCharge();
+
+        double result = fixCharge;
+        if (daysRented > basicDays)
+            result += (daysRented - basicDays) * dailyAddedCharge;
+        return result;
+    }
+
+    public int getFrequentRenterPoints() {
+        if (movie.getPriceCode() == Movie.NEW_RELEASE && daysRented > 1)
+            return 2;
+        else
+            return 1;
+    }
 }

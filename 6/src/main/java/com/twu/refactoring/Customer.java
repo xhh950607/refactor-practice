@@ -1,70 +1,78 @@
 package com.twu.refactoring;
 
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Customer {
 
-	private String name;
-	private ArrayList<Rental> rentalList = new ArrayList<Rental>();
+    private String name;
+    private ArrayList<Rental> rentalList = new ArrayList<Rental>();
 
-	public Customer(String name) {
-		this.name = name;
-	}
+    public Customer(String name) {
+        this.name = name;
+    }
 
-	public void addRental(Rental arg) {
-		rentalList.add(arg);
-	}
+    public void addRental(Rental arg) {
+        rentalList.add(arg);
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String statement() {
-		double totalAmount = 0;
-		int frequentRenterPoints = 0;
-		Iterator<Rental> rentals = rentalList.iterator();
-		String result = "Rental Record for " + getName() + "\n";
-		while (rentals.hasNext()) {
-			double thisAmount = 0;
-			Rental each = rentals.next();
+    private double calcTotalAmount() {
+        return rentalList.stream()
+                .map(Rental::getAmount)
+                .reduce(0d, Double::sum);
+    }
 
-			// determine amounts for each line
-			switch (each.getMovie().getPriceCode()) {
-			case Movie.REGULAR:
-				thisAmount += 2;
-				if (each.getDaysRented() > 2)
-					thisAmount += (each.getDaysRented() - 2) * 1.5;
-				break;
-			case Movie.NEW_RELEASE:
-				thisAmount += each.getDaysRented() * 3;
-				break;
-			case Movie.CHILDRENS:
-				thisAmount += 1.5;
-				if (each.getDaysRented() > 3)
-					thisAmount += (each.getDaysRented() - 3) * 1.5;
-				break;
+    private int calcFrequentRenterPoints() {
+        return rentalList.stream()
+                .map(Rental::getFrequentRenterPoints)
+                .reduce(0, Integer::sum);
+    }
 
-			}
+    private String formatRentals() {
+        StringBuilder sb = new StringBuilder();
+        for (Rental rental : rentalList) {
+            sb.append('\t')
+                    .append(rental.getMovie().getTitle())
+                    .append('\t')
+                    .append(rental.getAmount())
+                    .append('\n');
+        }
+        return sb.toString();
+    }
 
-			// add frequent renter points
-			frequentRenterPoints++;
-			// add bonus for a two day new release rental
-			if ((each.getMovie().getPriceCode() == Movie.NEW_RELEASE)
-					&& each.getDaysRented() > 1)
-				frequentRenterPoints++;
+    private String formatRentalsInHtml() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<P>");
+        for (Rental rental : rentalList) {
+            sb.append(rental.getMovie().getTitle())
+                    .append(": ")
+                    .append(rental.getAmount())
+                    .append("<BR>");
+        }
+        sb.append("<P>");
+        return sb.toString();
+    }
 
-			// show figures for this rental
-			result += "\t" + each.getMovie().getTitle() + "\t"
-					+ String.valueOf(thisAmount) + "\n";
-			totalAmount += thisAmount;
+    public String statement() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Rental Record for ").append(getName()).append('\n');
+        sb.append(formatRentals());
+        sb.append("Amount owed is ").append(calcTotalAmount()).append('\n');
+        sb.append("You earned ").append(calcFrequentRenterPoints()).append(" frequent renter points");
+        return sb.toString();
+    }
 
-		}
-		// add footer lines
-		result += "Amount owed is " + String.valueOf(totalAmount) + "\n";
-		result += "You earned " + String.valueOf(frequentRenterPoints)
-				+ " frequent renter points";
-		return result;
-	}
-
+    public String htmlStatement() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<H1>Rentals for <EM>").append(getName()).append("</EM></H1>");
+        sb.append(formatRentalsInHtml());
+        sb.append("You owe <EM>").append(calcTotalAmount()).append("</EM><P>");
+        sb.append("On this rental you earned <EM>").append(calcFrequentRenterPoints()).append("</EM> frequent renter points<P>");
+        return sb.toString();
+    }
 }
