@@ -27,67 +27,17 @@ public class DateParser {
     }
 
     public Date parse() {
-        int year, month, date, hour, minute;
-
-        try {
-            String yearString = dateAndTimeString.substring(0, 4);
-            year = Integer.parseInt(yearString);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Year string is less than 4 characters");
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Year is not an integer");
-        }
-        if (year < 2000 || year > 2012)
-            throw new IllegalArgumentException("Year cannot be less than 2000 or more than 2012");
-
-        try {
-            String monthString = dateAndTimeString.substring(5, 7);
-            month = Integer.parseInt(monthString);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Month string is less than 2 characters");
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Month is not an integer");
-        }
-        if (month < 1 || month > 12)
-            throw new IllegalArgumentException("Month cannot be less than 1 or more than 12");
-
-        try {
-            String dateString = dateAndTimeString.substring(8, 10);
-            date = Integer.parseInt(dateString);
-        } catch (StringIndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Date string is less than 2 characters");
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Date is not an integer");
-        }
-        if (date < 1 || date > 31)
-            throw new IllegalArgumentException("Date cannot be less than 1 or more than 31");
+        int year = extract(YEAR);
+        int month = extract(MONTH);
+        int date = extract(DATE);
+        int hour, minute;
 
         if (dateAndTimeString.substring(11, 12).equals("Z")) {
             hour = 0;
             minute = 0;
         } else {
-            try {
-                String hourString = dateAndTimeString.substring(11, 13);
-                hour = Integer.parseInt(hourString);
-            } catch (StringIndexOutOfBoundsException e) {
-                throw new IllegalArgumentException("Hour string is less than 2 characters");
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Hour is not an integer");
-            }
-            if (hour < 0 || hour > 23)
-                throw new IllegalArgumentException("Hour cannot be less than 0 or more than 23");
-
-            try {
-                String minuteString = dateAndTimeString.substring(14, 16);
-                minute = Integer.parseInt(minuteString);
-            } catch (StringIndexOutOfBoundsException e) {
-                throw new IllegalArgumentException("Minute string is less than 2 characters");
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Minute is not an integer");
-            }
-            if (minute < 0 || minute > 59)
-                throw new IllegalArgumentException("Minute cannot be less than 0 or more than 59");
-
+            hour = extract(HOUR);
+            minute = extract(MINUTE);
         }
 
         Calendar calendar = Calendar.getInstance();
@@ -95,5 +45,46 @@ public class DateParser {
         calendar.set(year, month - 1, date, hour, minute, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         return calendar.getTime();
+    }
+
+    private static class Component {
+        String name;
+        int startPosition;
+        int endPosition;
+        int lowerBound;
+        int upperBound;
+        int numberOfChars;
+
+        public Component(String name, int startPosition, int endPosition, int lowerBound, int upperBound) {
+            this.name = name;
+            this.startPosition = startPosition;
+            this.endPosition = endPosition;
+            this.lowerBound = lowerBound;
+            this.upperBound = upperBound;
+            this.numberOfChars = endPosition - startPosition;
+        }
+    }
+
+    private final static Component YEAR = new Component("Year", 0, 4, 2000, 2012);
+    private final static Component MONTH = new Component("Month", 5, 7, 1, 12);
+    private final static Component DATE = new Component("Date", 8, 10, 1, 31);
+    private final static Component HOUR = new Component("Hour", 11, 13, 0, 23);
+    private final static Component MINUTE = new Component("Minute", 14, 16, 0, 59);
+
+    private int extract(Component component) {
+        int res;
+        try {
+            String str = dateAndTimeString.substring(component.startPosition, component.endPosition);
+            res = Integer.parseInt(str);
+        } catch (StringIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException(component.name + " string is less than "
+                    + component.numberOfChars + " characters");
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(component.name + " is not an integer");
+        }
+        if (res < component.lowerBound || res > component.upperBound)
+            throw new IllegalArgumentException(component.name + " cannot be less than "
+                    + component.lowerBound + " or more than " + component.upperBound);
+        return res;
     }
 }
